@@ -474,7 +474,7 @@ void pickTheme(char* pickedTheme) {
     if (count == 0) {
         return;
     }
-    qsort(themeList, count, sizeof(char*), compareThemeNames);
+    qsort(themeList, count, sizeof(char*), compareStringsIgnoreCase);
     for (int i = 0; i < count; i++) {
         char line[100] = "";
         _snprintf_s(line, sizeof(line), -1, "%s", themeList[i]);
@@ -1528,7 +1528,7 @@ void queueIncomingMessage(char* msg, bool mention) {
 void listThemesInChat() {
     char** themeList;
     int count = getThemes(&themeList);
-    qsort(themeList, count, sizeof(char*), compareThemeNames);
+    qsort(themeList, count, sizeof(char*), compareStringsIgnoreCase);
     displayMessage("|15* Pick a theme with |09/theme |10name", false);
     for (int i = 0; i < count; i++) {
         char line[100] = "";
@@ -1840,6 +1840,7 @@ void processServerMessage(char* svrmsg, char* toUser) {
     else if (strncmp(svrmsg, "USERLIST", cmdsep) == 0) {
         char** newChatters;
         int newCount = split((svrmsg + argpos), ',', &newChatters);
+        qsort(newChatters, newCount, sizeof(char*), compareStringsIgnoreCase);
         EnterCriticalSection(&gChattersLock);
         char** oldChatters = gChattersInRoom;
         int oldCount = gChatterCount;

@@ -156,7 +156,7 @@ void cleanUpFilename(char* str) {
     }
 }
 
-int compareThemeNames(const void* a, const void* b) {
+int compareStringsIgnoreCase(const void* a, const void* b) {
     return _stricmp(*(const char* const*)a, *(const char* const*)b);
 }
 

@@ -75,9 +75,9 @@ macOS (arm64):
 
 
 
-FreeBSD (x64):
+FreeBSD (x64 and arm64):
 
-  Follow these steps to compile FreeBSD x64 binaries:
+  Follow these steps to compile FreeBSD x64 or arm64 binaries:
 
   1. First make sure gcc is installed on the system.
 
@@ -113,22 +113,77 @@ FreeBSD (x64):
   - umrc-bridge
   - umrc-client
   
-  FreeBSD is the only targeted BSD at this time. OpenBSD and NetBSD would need
-  their own compiled OpenDoors library, and the above steps may work but have
-  not been tested.
+  FreeBSD is the only targeted BSD. The above steps may work for OpenBSD and
+  NetBSD as well, but they would need their own compiled OpenDoors library.
   
 
 
 
 Windows (x86 & x64):
 
-  Follow these steps to compile Windows x86 or x64 executables:
+  You may use either MinGW or Microsoft Visual Studio to compile uMRC. Which
+  one you choose is entirely up to you and your comfort level with either
+  tool. If you've never used either, then the MinGW method is arguably easier
+  and takes less time.
+  
+
+  Method #1 - MinGW:
+  
+  Note, the ODoors63.DLL libaries included in the uMRC project were compiled 
+  with Visual Studio, and at the time of this writing don't work all that well 
+  when linking with MinGW gcc. So if you go down the MinGW path, download the 
+  mingw releases from this page, and replace uMRC's DLLs with those contained 
+  within: https://github.com/RealDeuce/OpenDoors/releases/tag/v6.3.0, Then 
+  proceed to step 1 below.
+  
+  1. Install a standalone build of MinGW:
+  
+     https://winlibs.com
+	 
+	 Find the most recent POSIX ZIP option under Releases. There is both a 
+     Win32 and Win64 version available. Download both and extract their contents
+	 to any folders of your choosing.
+	 
+  
+  2. Edit the build.bat file and change the path_to_x64_gcc and path_to_x86_gcc
+     variables to match the actual paths where you extracted the ZIP file(s)
+	 
+	 
+  3. Open a Command Prompt and go to the folder where you extracted the uMRC 
+     project files and run build.bat (or just double click it). It will compile
+	 32-bit executables by default, or you can have it compile 64-bit 
+	 executables instead by running: build.bat x64
+	 
+	 build.bat will fail if you didn't specify your path variables properly in
+	 step #2.
+
+
+  When done, you will find the compiled EXEs, DLLs, and other necessary files
+  in a subfolder named "bin" within the uMRC folder.
+
+  [bin]:
+  - [screens]
+  - [themes]
+  - crypto-57.dll
+  - ssl-60.dll
+  - ODoors63.dll
+  - setup.exe
+  - umrc-bridge.exe
+  - umrc-client.exe
+  
+  
+
+  Method #2 - Microsoft Visual Studio:
 
   1. Download and install Visual Studio Community:
 
      https://visualstudio.microsoft.com/vs/community/
 
-     I use Visual Studio Community 2022 at the time of this writing.
+     uMRC was developed in Visual Studio Community 2022, but any version on or
+	 after 2017 will work fine. 
+	 
+	 Ensure you select the "Desktop Development with C++" option under 
+	 Workloads during install.	 
 
 
   2. After Visual Studio is installed, start it and select the option

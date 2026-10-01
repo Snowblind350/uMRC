@@ -1,5 +1,13 @@
 Change Log:
 
+TBA:
+
+  - Repeated TAB keystrokes now cycle through all usernames matching the
+    keys typed since the beginning of the line or the last empty space.
+  - Fix for messages shorter than 140 begin unnecessarily broken into multiple 
+    packets.
+ 
+
 v106 - September 17, 2026:
 
   - uMRC now uses the latest OpenDoors version 6.3. The Windows x86 and x64

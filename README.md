@@ -12,7 +12,7 @@ It should be compatible with any DOOR32.SYS capable BBS such as EleBBS, WWIV, Sy
 
 If you use NetFoss to start up your DOS-based BBS, then the NFU utility bundled with NetFoss should run the uMRC Client. As of this writing, Renegade and Oblivion/2 have been confirmed.
 
-Pre-compiled binaries are also available for Linux and macOS, or may be compiled from source using the Install Instructions below.
+Pre-compiled binaries are also available for Linux, FreeBSD, and macOS, or may be compiled from source (see build.txt).
 
 
 ## 📋 Features:

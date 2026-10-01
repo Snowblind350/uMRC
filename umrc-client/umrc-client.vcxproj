@@ -188,9 +188,6 @@ xcopy ..\assets\themes ..\umrc-client\themes /E /I /Y</Command>
     <ClInclude Include="OpenDoor.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="ODoorw.res" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

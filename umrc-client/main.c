@@ -992,11 +992,7 @@ bool sendMsgPacket(SOCKET* sock, char* toUser, char* msgExt, char* toRoom, char*
  * gets hard-cut, the same fallback the screen word-wrap uses.
  */
 void sendChatMessage(char* toUser, char* msgExt, char* toRoom, const char* prefix, char* bodyText) {
-    size_t prefixLen = strlen(prefix);
-    size_t maxBodyPerChunk = (prefixLen < MSG_LEN - 1) ? (MSG_LEN - 1 - prefixLen) : 0;
-    if (maxBodyPerChunk == 0) {
-        return; // prefix alone already fills a packet -- nothing sane to send
-    }
+    size_t maxBodyPerChunk = MSG_LEN - 1; // message text always gets the full 140 chars, regardless of prefix length
 
     size_t total = strlen(bodyText);
     size_t offset = 0;
@@ -1004,13 +1000,9 @@ void sendChatMessage(char* toUser, char* msgExt, char* toRoom, const char* prefi
         size_t remaining = total - offset;
         size_t take = (remaining < maxBodyPerChunk) ? remaining : maxBodyPerChunk;
 
-        if (take == remaining) {
-            // Last chunk -- everything left fits, nothing to search for.
-        }
-        else {
+        if (take != remaining) {
             // Look for the last space within the window so we break between
-            // words rather than mid-word. Scan backward from the end of the
-            // window we'd otherwise hard-cut at.
+            // words rather than mid-word.
             size_t breakAt = take;
             while (breakAt > 0 && bodyText[offset + breakAt - 1] != ' ') {
                 breakAt--;
@@ -1018,20 +1010,18 @@ void sendChatMessage(char* toUser, char* msgExt, char* toRoom, const char* prefi
             if (breakAt > 0) {
                 take = breakAt - 1; // exclude the space itself from this chunk
             }
-            // else: no space anywhere in the window -- a single word longer
-            // than a whole packet's worth of body. Fall through and hard-cut
-            // at maxBodyPerChunk; there's no boundary to break on.
+            // else: no space anywhere in the window -- fall through and hard-cut.
         }
 
         char bodyPart[MSG_LEN] = "";
-        char chunk[MSG_LEN] = "";
+        char chunk[PACKET_LEN] = "";   // prefix + up to 140 chars can exceed MSG_LEN, so this needs the bigger buffer
         strncpy_s(bodyPart, sizeof(bodyPart), bodyText + offset, take);
         _snprintf_s(chunk, sizeof(chunk), -1, "%s%s", prefix, bodyPart);
         sendMsgPacket(&mrcSock, toUser, msgExt, toRoom, chunk);
 
         offset += take;
         while (offset < total && bodyText[offset] == ' ') {
-            offset++; // skip the space(s) we broke on, so the next chunk doesn't start with one
+            offset++;
         }
         if (offset < total) od_sleep(750);
     } while (offset < total);
@@ -2140,6 +2130,11 @@ void* handleIncomingMessages(void* lpArg) {
  */
 void doChatRoutines(char* input, char* previousInput) {
     bool masking = false;
+    bool tabActive = false;           // true if the completion currently in `input` came from a TAB and hasn't been touched since
+    char tabOriginalSearch[140] = ""; // the prefix as originally typed, e.g. "bo"
+    int tabSearchStart = 0;           // column in `input` where that prefix began
+    int tabMatchIndex = -1;           // roster index of the currently-shown match, so the next press can continue from there   
+    int tabLastResultLen = 0;   // add alongside the other tab state, reset to 0 whenever tabActive becomes false
     char key = ' ';
     tODInputEvent InputEvent;
     while (true) {
@@ -2186,6 +2181,7 @@ void doChatRoutines(char* input, char* previousInput) {
         int endOfInput = 0;
         char tabResult[31] = "";
         if (InputEvent.EventType == EVENT_EXTENDED_KEY) {
+            tabActive = false;   // any extended key invalidates an in-progress cycle
             int overfill = 0;
             time(&gLastActTm);
             switch (InputEvent.chKeyPress)
@@ -2343,6 +2339,7 @@ void doChatRoutines(char* input, char* previousInput) {
         }
         else if (InputEvent.EventType == EVENT_CHARACTER) {
             key = InputEvent.chKeyPress;
+            if (key != 9) { tabActive = false; }   // only a repeat TAB should leave it set
             updateInput = true;
             time(&gLastActTm);
 
@@ -2400,34 +2397,52 @@ void doChatRoutines(char* input, char* previousInput) {
                 od_printf(CHAT_CURSOR, CURSOR_COLORS[user.textColor]);
                 continue;
             }
-            else if (key == 9) {   // TAB - chatter name completion
+            else if (key == 9) {   // TAB - chatter name completion, cycling on repeated presses
                 if (strlen(input) == 0) {
-                    continue; // do nothing if there's no input
-                }
-                int indexOfTabSearch = -1;
-                char tabSearch[140] = "";
-                // capture the typed portion after the last space or the beginning of the string,
-                // and use that as the user search string.
-                for (int i = (int)strlen(input); i >= 0 && input[i] != ' '; i--) {
-                    if (input[i] != ' ') {
-                        indexOfTabSearch = i;
-                    }
-                }
-                strcpy_s(tabSearch, sizeof(tabSearch), input + indexOfTabSearch);
-				EnterCriticalSection(&gChattersLock);
-                for (int i = 0; i < gChatterCount; i++) {
-                    if (_strnicmp(tabSearch, gChattersInRoom[i], strlen(tabSearch)) == 0 && _stricmp(gChattersInRoom[i], user.chatterName) != 0) {
-                        strcpy_s(tabResult, sizeof(tabResult), gChattersInRoom[i]);
-                        input[strlen(input) - strlen(tabSearch)] = '\0';
-                        strcat_s(input, MSG_LEN_EXT, tabResult);
-                        endOfInput = endOfInput + 1;
-                        break;
-                    }
-                }
-				LeaveCriticalSection(&gChattersLock);
-                if (strlen(tabResult) == 0) { // if no match, just skip
                     continue;
                 }
+
+                if (!tabActive) {
+                    // Fresh completion: capture the typed portion after the last space
+                    // (or start of string) as the search prefix, and remember where it
+                    // starts so later cycles know what to cut back to.
+                    int indexOfTabSearch = -1;
+                    for (int i = (int)strlen(input); i >= 0 && input[i] != ' '; i--) {
+                        if (input[i] != ' ') {
+                            indexOfTabSearch = i;
+                        }
+                    }
+                    strcpy_s(tabOriginalSearch, sizeof(tabOriginalSearch), input + indexOfTabSearch);
+                    tabSearchStart = indexOfTabSearch;
+                    tabMatchIndex = -1;
+                }
+
+                int searchLen = (int)strlen(tabOriginalSearch);
+                EnterCriticalSection(&gChattersLock);
+                if (gChatterCount > 0) {
+                    for (int step = 0; step < gChatterCount; step++) {
+                        int i = (tabMatchIndex + 1 + step) % gChatterCount;   // continue past wherever we left off, wrapping around
+                        if (_strnicmp(tabOriginalSearch, gChattersInRoom[i], searchLen) == 0 &&
+                            _stricmp(gChattersInRoom[i], user.chatterName) != 0) {
+                            strcpy_s(tabResult, sizeof(tabResult), gChattersInRoom[i]);
+                            tabMatchIndex = i;
+                            break;
+                        }
+                    }
+                }
+                LeaveCriticalSection(&gChattersLock);
+
+                if (strlen(tabResult) == 0) {
+                    // No match at all (or no longer any match -- e.g. everyone who
+                    // matched left the room mid-cycle) -- leave input untouched.
+                    tabActive = false;
+                    continue;
+                }
+
+                input[tabSearchStart] = '\0';
+                strcat_s(input, MSG_LEN_EXT, tabResult);
+                tabActive = true;
+                endOfInput = endOfInput + 1;
             }
             else {
                 continue;
@@ -2464,8 +2479,17 @@ void doChatRoutines(char* input, char* previousInput) {
                     od_set_cursor(od_control.user_screen_length, 1);
                 }
             }
-            else if (key == 9) {        // Type the rest of the tabbed username...
+            else if (key == 9) {
                 od_disp_str(tabResult);
+                int newLen = (int)strlen(tabResult);
+                if (tabLastResultLen > newLen) {
+                    for (int i = 0; i < tabLastResultLen - newLen+1; i++) {
+                        dispEmuPipe("|08|16", TRUE);
+                        od_putch('\372');
+                    }
+                    od_set_cursor(od_control.user_screen_length, endOfInput + newLen);
+                }
+                tabLastResultLen = newLen;
             }
             else if (key >= 32) {       // Just type the character that was typed...
 
@@ -2506,7 +2530,7 @@ bool enterChat() {
     strcpy_s(gRoom, sizeof(gRoom), user.defaultRoom);
 
     gScrollBack = malloc(50);
-    strcpy_s(gScrollBack, 50, "|15 * * * TOP OF SCROLLBACK * * *|07");
+    strcpy_s(gScrollBack, 50, "|15 * * * TOP OF SCROLLBACK * * *|07\n");
     gMentions = malloc(50);
     strcpy_s(gMentions, 50, "|15 * * * MENTIONS * * *|07\n");
 

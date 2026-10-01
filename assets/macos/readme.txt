@@ -42,7 +42,8 @@ Features:
 
 - Secure SSL MRC host connections
 - Automatic host reconnection & rejoin
-- TAB username auto-completion
+- TAB username auto-completion. Repeated TAB presses cycle through matching
+  usernames.
 - Password masking (e.g.: /identify ********)
 - Mention counter
 - Built-in chat and mention history scrollback

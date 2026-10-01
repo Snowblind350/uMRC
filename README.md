@@ -19,10 +19,10 @@ Pre-compiled binaries are also available for Linux, FreeBSD, and macOS, or may b
 
 - Secure SSL MRC host connections
 - Automatic host reconnection & rejoin
-- TAB username auto-completion
+- TAB username auto-completion. Repeated presses cycle through matching usernames.
 - Password masking (e.g.: `/identify ********`)
 - Mention counter
-- Built-in chat and mention history scrollback
+- Built-in chat and mention history scrollback (separate scrollback buffers for each)
 - [Pipe code color](https://wiki.mysticbbs.com/doku.php?id=displaycodes#color_codes_pipe_colors) support
 - [CTCP command](https://en.wikipedia.org/wiki/Client-to-client_protocol) support
 - Editable themes

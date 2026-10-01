@@ -2,8 +2,9 @@ Change Log:
 
 TBA:
 
-  - Repeated TAB keystrokes now cycle through all usernames matching the
-    keys typed since the beginning of the line or the last empty space.
+  - Repeated TAB keystrokes now alphabetically cycle through all usernames 
+    matching the keys typed since the beginning of the line or the last empty 
+	space.
   - Fix for messages shorter than 140 begin unnecessarily broken into multiple 
     packets.
  

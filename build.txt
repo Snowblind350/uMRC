@@ -129,13 +129,6 @@ Windows (x86 & x64):
 
   Method #1 - MinGW:
   
-  Note, the ODoors63.DLL libaries included in the uMRC project were compiled 
-  with Visual Studio, and at the time of this writing don't work all that well 
-  when linking with MinGW gcc. So if you go down the MinGW path, download the 
-  mingw releases from this page, and replace uMRC's DLLs with those contained 
-  within: https://github.com/RealDeuce/OpenDoors/releases/tag/v6.3.0, Then 
-  proceed to step 1 below.
-  
   1. Install a standalone build of MinGW:
   
      https://winlibs.com

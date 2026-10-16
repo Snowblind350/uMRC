@@ -134,7 +134,7 @@ Windows (x86 & x64):
      https://winlibs.com
 	 
 	 Find the most recent POSIX ZIP option under Releases. There is both a 
-     Win32 and Win64 version available. Download both and extract their contents
+    Win32 and Win64 version available. Download both and extract their contents
 	 to any folders of your choosing.
 	 
   

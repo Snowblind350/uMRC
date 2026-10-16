@@ -732,7 +732,7 @@ SSL* performSslHandshake(SOCKET* sock) {
     }
 
     if (SSL_connect(ssl) <= 0) {
-        ERR_print_errors_fp(stderr);
+        //ERR_print_errors_fp(stderr); // don't need for deployment
         printDateTimeStamp();
         puts("SSL_connect failed (Verification or handshake failure).");
         writeToLog("SSL_connect failed", PROGRAM, "");

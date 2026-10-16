@@ -1,12 +1,13 @@
 Change Log:
 
-TBA:
+v107 - TBA:
 
   - Repeated TAB keystrokes now alphabetically cycle through all usernames 
     matching the keys typed since the beginning of the line or the last empty 
-	space.
+    space.
   - Fix for messages shorter than 140 begin unnecessarily broken into multiple 
     packets.
+  - Fix for Windows OpenDoors DLLs built using different compilers.
  
 
 v106 - September 17, 2026:

@@ -819,9 +819,9 @@ void enterChatterSettings(char* quitToWhere) {
         dispEmuPipe(sampletext, TRUE);
         od_printf("``\r\n");
 
-        od_printf(" `bright magenta`4`bright white`) `white`Chat sounds:   `bright white`%s\r\n", user.chatSounds ? "ON" : "OFF");
+        od_printf(" `bright magenta`4`bright white`) `white`Chat sounds:   %s\r\n", user.chatSounds ? "`bright white`ON" : "`bright black`OFF");
 
-        od_printf(" `bright magenta`5`bright white`) `white`Enter message: ");
+        od_printf(" `bright magenta`5`bright white`) `white`Join message:  ");
         dispEmuPipe(user.joinMessage, TRUE);
         od_printf("``\r\n");
 
@@ -863,7 +863,7 @@ void enterChatterSettings(char* quitToWhere) {
         case '4':
             user.chatSounds = !user.chatSounds;
             changesMade = true;
-            od_printf("\r\n\r\n`bright white`Chat sounds are now `bright yellow`%s``", user.chatSounds ? "ON" : "OFF");
+            od_printf("`bright white`Chat sounds are now `bright yellow`%s``", user.chatSounds ? "ON" : "OFF");
             doPause();
             break;
 
